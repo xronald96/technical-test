@@ -244,26 +244,63 @@ let data = [
     {name: 'Zimbabwe', code: 'ZW'} 
   ]
 
- const getItems = ({name, code } = {name: "" , code: ""}) => {
+ const getItems = ({name } = {name: ""}) => {
   let result = [...data];
-  if(name || code) result = result.filter(it=>it.name.includes(name) || it.code.includes(code))
-  return result;
+  console.log(name)
+  if(name) result = result.filter(it=>it.name.toLocaleLowerCase().includes(name.toLocaleLowerCase()))
+  return {
+    status:'ok',
+    result:result
+  };
 }
 
  const addItem = (newItem) => {
-  data.push(newItem);
-  return newItem;
+  let itemToAdd = {...newItem, code:newItem.code.toLocaleUpperCase()}
+  if(!data.some(it=>it.code===itemToAdd.code)){
+    data.push(itemToAdd);
+    return {
+      status:'ok',
+      result:itemToAdd
+    };
+  }
+  else  
+    return {
+      status:"error",
+      message:"This code is on the list, choose other"
+    }
 };
 
 const updateItem = (updatedItem) => {
   const updateIndex = data.findIndex(el=> el.code === updatedItem.code);
-  data[updateIndex]= updatedItem;
-  return updatedItem;
+  if(updateIndex<0){
+    return {
+      status:"error",
+      message:"This code is not found"
+    }
+  }
+  else{
+    data[updateIndex] = updatedItem;
+    return {
+      status:'ok',
+      result:updatedItem
+    }
+  }
 }
 
 const deleteItem = (code) => {
   const indexToDelete = data.findIndex(el=> el.code === code);
-  data.splice(indexToDelete, 1);
+  if(updateIndex<0){
+    return {
+      status:"error",
+      message:"This code is not found"
+    }
+  }
+  else{
+    data.splice(indexToDelete, 1);
+    return {
+      status:'ok',
+    };
+  }
 }
 
 export {

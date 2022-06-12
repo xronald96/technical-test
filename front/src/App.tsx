@@ -34,6 +34,7 @@ const Button = styled.button`
 const AddItem = styled.div`
   display: flex;
   align-items: center;
+  position: relative;
   *{
     margin-right: 12px;
   }
@@ -69,13 +70,15 @@ function App() {
   })
   const [ data , setData ] = useState<Array<{code:string, name:string}>>([])
   const [ newItem , setNewItem] = useState<{name:string, code:string}>({code:'', name:''})
+  const [ error, setError ] = useState<string>('');
   useEffect(()=>{
-    fetchData()
+    getData()
   }, [])
-  const fetchData = async (text:string = '') => {
-    let fullUrl = `${url}${text ? "?" + new URLSearchParams({name:text, code:text}) : ''}`;
+  const getData = async (text:string = '') => {
+    let fullUrl = `${url}${text ? "?" + new URLSearchParams({name:text}) : ''}`;
     const result: any = await fetch(fullUrl).then(response =>response.json())
-    setData(result)
+    if(result.status==="ok")
+      setData(result.result)
   }
   const handleInput = (e: any) => {
     const {name, value} = e.target
@@ -89,18 +92,23 @@ function App() {
       body: JSON.stringify({ code: data[mode.index].code, name: mode.newValue})
     };
     const result = await fetch(url, requestOptions)
+    
     .then(response => response.json())
-    console.log('result', result)
-    const updateData = [...data];
-    updateData[mode.index] = result;
-    setData(updateData)
-    setMode(
-      {
-        name:'',
-        index:-1,
-        newValue:''
-      }
-    )
+    if(result.status==="ok"){
+      setError('')
+      const updateData = [...data];
+      updateData[mode.index] = result.result;
+      setData(updateData)
+      setMode(
+        {
+          name:'',
+          index:-1,
+          newValue:''
+        }
+      )
+    }
+    else
+      setError(result.message)
   }
 
   const addItem = async() => {
@@ -111,23 +119,36 @@ function App() {
     };
     const result = await fetch(url, requestOptions)
     .then(response => response.json())
-    const updateData = [...data];
-    updateData.unshift(result);
-    setNewItem({name:'', code:''})
-    setData(updateData)
+    if(result.status==="ok"){
+      setError('')
+      const updateData = [...data];
+      updateData.unshift(result.result);
+      setNewItem({name:'', code:''})
+      setData(updateData)
+    }
+    else
+      setError(result.message)
   }
 
   const deleteItem = async(code:string) => {
-    await fetch(`${url}/${code}`, {method:'DELETE'})
-    const resultFilter = data.filter(it=>it.code!==code);
-    setData(resultFilter);
+    const result = await fetch(`${url}/${code}`, {method:'DELETE'}).then(response => response.json())
+    if(result.status==="ok"){
+      setError('')
+      const resultFilter = data.filter(it=>it.code!==code);
+      setData(resultFilter);
+    }
+    else
+      setError(result.message)
+    
   }
   return (
     <Body>
       <AddItem>
         <Input value={newItem.code} placeholder='Code' name="code" onChange={handleInput}/>
         <Input value={newItem.name} placeholder='Name' name="name" onChange={handleInput}/>
-        <Button onClick={addItem} disabled={!newItem.code || !newItem.name}>Añadir</Button>
+        <Button onClick={addItem} disabled={!newItem.code || !newItem.name}>Add</Button>
+        {error && <div style={{display:'flex', alignItems:'center', color:'red'}}>{error}</div>}
+        <Input onChange={e => getData(e.target.value)} placeholder='search' style={{position:"absolute", right:0}}/>
       </AddItem>
       
       <Headers>

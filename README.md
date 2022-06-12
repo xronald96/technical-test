@@ -13,3 +13,11 @@ The image "Exercise 1" in this repository show the code that show how work my ex
     º Buttons filters in the top part.
 
 3º Assuming the code of the dataset is the id.
+
+    How improve the test
+    - debounce in the search
+    - pagination or inifinty scroll
+    - style
+    - split view in diff components 
+    - avoid re-render diff components
+    - adding unit testing in both parts
